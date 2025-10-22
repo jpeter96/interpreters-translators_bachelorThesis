@@ -1,0 +1,13 @@
+(* Addition: x0 = 7 + 3 using GOTO *)
+
+x1 := 7;
+x2 := 3;
+x0 := x1;
+
+LOOP: IF x2 = 0 THEN GOTO END;
+x0 := x0 + 1;
+x2 := x2 - 1;
+GOTO LOOP;
+
+END: HALT
+

@@ -1,0 +1,6 @@
+(executable
+ (name main)
+ (public_name interpreters_translators)
+ (modules main)
+ (libraries common loop while_lang goto translators))
+

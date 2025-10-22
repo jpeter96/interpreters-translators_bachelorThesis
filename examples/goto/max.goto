@@ -1,0 +1,10 @@
+(* Maximum of two numbers: x0 = max(x1, x2) *)
+
+IF x1 >= x2 THEN GOTO FIRST;
+x0 := x2;
+GOTO END;
+
+FIRST: x0 := x1;
+
+END: HALT
+

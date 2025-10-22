@@ -1,0 +1,34 @@
+# OCaml build artifacts
+_build/
+*.install
+*.merlin
+.merlin
+
+# Dune
+*.exe
+*.so
+*.a
+*.o
+*.cmi
+*.cmo
+*.cmx
+*.cmxa
+*.cma
+*.cmxs
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# opam
+_opam/
+*.opam.locked
+
+# Test outputs
+*.log
+test_output/
+

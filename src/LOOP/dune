@@ -1,0 +1,10 @@
+(library
+ (name loop)
+ (modules ast lexer parser interpreter)
+ (libraries common))
+
+(menhir
+ (modules parser))
+
+(ocamllex lexer)
+

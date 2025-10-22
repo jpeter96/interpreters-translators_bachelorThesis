@@ -1,0 +1,11 @@
+(* Addition: x0 = x1 + x2 using GOTO *)
+
+x0 := x1;
+
+LOOP: IF x2 = 0 THEN GOTO END;
+x0 := x0 + 1;
+x2 := x2 - 1;
+GOTO LOOP;
+
+END: HALT
+
