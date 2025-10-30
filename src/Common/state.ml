@@ -45,3 +45,13 @@ let to_string (state : t) : string =
 let print (state : t) : unit =
   print_endline (to_string state)
 
+(** Check if two states are equal on a subset of variables *)
+let equal_on_vars (vars : string list) (state1 : t) (state2 : t) : bool =
+  List.for_all (fun var ->
+    get state1 var = get state2 var
+  ) vars
+
+(** Get all variable names in a state *)
+let vars (state : t) : string list =
+  List.map fst (to_list state)
+

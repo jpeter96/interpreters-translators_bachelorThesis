@@ -179,10 +179,17 @@ let do_translate source target file output verify =
           let state_while = While_lang.Interpreter.run_empty translated in
           printf "LOOP  final state: %s\n" (Common.State.to_string state_loop);
           printf "WHILE final state: %s\n" (Common.State.to_string state_while);
-          if state_loop = state_while then
-            printf "✓ Translation verified: states match!\n"
-          else
-            printf "✗ Translation verification failed: states differ!\n"
+          
+          (* Compare only variables from original program *)
+          let original_vars = Common.State.vars state_loop in
+          let states_match = Common.State.equal_on_vars original_vars state_loop state_while in
+          
+          if states_match then
+            printf "✓ Translation verified: all original variables match!\n"
+          else (
+            printf "✗ Translation verification failed: original variables differ!\n";
+            printf "Variables checked: %s\n" (String.concat ", " original_vars)
+          )
         );
         
         While_lang.Ast.string_of_program translated
@@ -199,10 +206,17 @@ let do_translate source target file output verify =
           let state_goto = Goto.Interpreter.run_empty translated in
           printf "WHILE final state: %s\n" (Common.State.to_string state_while);
           printf "GOTO  final state: %s\n" (Common.State.to_string state_goto);
-          if state_while = state_goto then
-            printf "✓ Translation verified: states match!\n"
-          else
-            printf "✗ Translation verification failed: states differ!\n"
+          
+          (* Compare only variables from original program *)
+          let original_vars = Common.State.vars state_while in
+          let states_match = Common.State.equal_on_vars original_vars state_while state_goto in
+          
+          if states_match then
+            printf "✓ Translation verified: all original variables match!\n"
+          else (
+            printf "✗ Translation verification failed: original variables differ!\n";
+            printf "Variables checked: %s\n" (String.concat ", " original_vars)
+          )
         );
         
         Goto.Ast.string_of_program translated
@@ -219,10 +233,17 @@ let do_translate source target file output verify =
           let state_while = While_lang.Interpreter.run_empty translated in
           printf "GOTO  final state: %s\n" (Common.State.to_string state_goto);
           printf "WHILE final state: %s\n" (Common.State.to_string state_while);
-          if state_goto = state_while then
-            printf "✓ Translation verified: states match!\n"
-          else
-            printf "✗ Translation verification failed: states differ!\n"
+          
+          (* Compare only variables from original program *)
+          let original_vars = Common.State.vars state_goto in
+          let states_match = Common.State.equal_on_vars original_vars state_goto state_while in
+          
+          if states_match then
+            printf "✓ Translation verified: all original variables match!\n"
+          else (
+            printf "✗ Translation verification failed: original variables differ!\n";
+            printf "Variables checked: %s\n" (String.concat ", " original_vars)
+          )
         );
         
         While_lang.Ast.string_of_program translated
