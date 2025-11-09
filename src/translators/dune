@@ -1,5 +1,0 @@
-(library
- (name translators)
- (modules loop_to_while while_to_goto goto_to_while)
- (libraries common loop while_lang goto))
-

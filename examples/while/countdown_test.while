@@ -1,9 +1,0 @@
-(* Countdown from 5 *)
-x1 := 5;
-x0 := 0;
-
-WHILE x1 != 0 DO
-  x0 := x0 + 1;
-  x1 := x1 - 1
-END
-
