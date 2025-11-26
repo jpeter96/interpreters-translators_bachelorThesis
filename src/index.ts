@@ -1,54 +1,63 @@
-import type { Program, Assignment, Expression } from "./ast";
+import Lexer = require("./lexer");
+import Parser = require("./parser");
+import Interpreter = require("./interpreter");
 
-// 1. Example: Simple assignment => x0 := 5
-const simpleAssignment: Assignment = {
-    type: "assignment",
-    variable: "x0",
-    value: { type: "number", value: 5 }
-};
+console.log("=== BACHELOR THESIS: INTERPRETERS & TRANSLATORS ===\n");
 
-console.log("Simple Assignment:", JSON.stringify(simpleAssignment, null, 2));
+// EXAMPLE 1: LOOP Program
+// Calculates multiplication: x2 = x0 * x1
+console.log("--- EXAMPLE 1: LOOP PROGRAM (Multiplication) ---");
+const loopProgram = `
+x0 := 3;
+x1 := 4;
+x2 := 0;
+LOOP x0 DO
+  LOOP x1 DO
+    x2 := x2 + 1;
+  END
+END
+`;
+console.log("Code:");
+console.log(loopProgram.trim());
 
-// 2. Example: Assignment with expression => x1 := x0 + 3
-const expressionAssignment: Assignment = {
-    type: "assignment",
-    variable: "x1",
-    value: {
-        type: "binaryOp",
-        operator: "+",
-        left: { type: "variable", name: "x0" },
-        right: { type: "number", value: 3 }
-    }
-};
+const lexer = new Lexer(loopProgram);
+const tokens = lexer.tokenize();
+const parser = new Parser(tokens);
+const ast = parser.parse();
 
-console.log("\nExpression Assignment:", JSON.stringify(expressionAssignment, null, 2));
+console.log("\nRunning Interpreter...");
+const interpreter = new Interpreter();
+const result = interpreter.evaluate(ast);
 
-// 3. Example: Complete program => x0 := 5; LOOP x0 DO x1 := x1 + 1 END
-const program: Program = {
-    type: "program",
-    statements: [
-        {
-            type: "assignment",
-            variable: "x0",
-            value: { type: "number", value: 5 }
-        },
-        {
-            type: "loop",
-            counter: "x0",
-            body: [
-                {
-                    type: "assignment",
-                    variable: "x1",
-                    value: {
-                        type: "binaryOp",
-                        operator: "+",
-                        left: { type: "variable", name: "x1" },
-                        right: { type: "number", value: 1 }
-                    }
-                }
-            ]
-        }
-    ]
-};
+console.log("Result Variables:");
+result.forEach((value, key) => {
+    console.log(`${key} = ${value}`);
+});
 
-console.log("\nComplete Program:", JSON.stringify(program, null, 2));
+
+// EXAMPLE 2: WHILE Program (Conceptual)
+console.log("\n\n--- EXAMPLE 2: WHILE PROGRAM (Division - Conceptual) ---");
+const whileProgram = `
+x0 := 10;
+x1 := 2;
+x2 := 0;
+WHILE x0 >= x1 DO
+  x0 := x0 - x1;
+  x2 := x2 + 1;
+END
+`;
+console.log("Code (Not yet supported by parser):");
+console.log(whileProgram.trim());
+
+
+// EXAMPLE 3: GOTO Program (Conceptual)
+console.log("\n\n--- EXAMPLE 3: GOTO PROGRAM (Simple Loop - Conceptual) ---");
+const gotoProgram = `
+x0 := 5;
+M1: IF x0 = 0 GOTO M2;
+    x0 := x0 - 1;
+    GOTO M1;
+M2: HALT;
+`;
+console.log("Code (Not yet supported by parser):");
+console.log(gotoProgram.trim());
