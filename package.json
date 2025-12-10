@@ -1,0 +1,27 @@
+{
+  "name": "interpreters-translators_bachelorthesis",
+  "version": "1.0.0",
+  "description": "Interpreters and translators of GOTO, LOOP and WHILE programs for FSK students",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jpeter96/interpreters-translators_bachelorThesis.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jpeter96/interpreters-translators_bachelorThesis/issues"
+  },
+  "homepage": "https://github.com/jpeter96/interpreters-translators_bachelorThesis#readme",
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "typescript": "^5.9.3"
+  }
+}
