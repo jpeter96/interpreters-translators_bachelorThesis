@@ -1,9 +1,9 @@
-import LoopInterpreter = require("../src/loop/interpreter");
-import LoopParser = require("../src/loop/parser");
-import Lexer = require("../src/lexer");
+import LoopInterpreter from "../src/loop/interpreter";
+import LoopParser from "../src/loop/parser";
+import Lexer from "../src/lexer";
 
 describe("LOOP Interpreter", () => {
-    test("should execute a simple LOOP program", () => {
+    test("simple loop", () => {
         const code = `
             x0 := 5;
             x1 := 0;
@@ -12,16 +12,14 @@ describe("LOOP Interpreter", () => {
             END
         `;
         const lexer = new Lexer(code);
-        const tokens = lexer.tokenize();
-        const parser = new LoopParser(tokens);
-        const ast = parser.parse();
+        const parser = new LoopParser(lexer.tokenize());
         const interpreter = new LoopInterpreter();
-        const result = interpreter.evaluate(ast);
+        const result = interpreter.evaluate(parser.parse());
         
         expect(result.get("x1")).toBe(5);
     });
 
-    test("should handle modified subtraction (monus)", () => {
+    test("monus subtraction (no negatives)", () => {
         const code = `
             x0 := 2;
             x1 := 5;
@@ -32,10 +30,10 @@ describe("LOOP Interpreter", () => {
         const interpreter = new LoopInterpreter();
         const result = interpreter.evaluate(parser.parse());
         
-        expect(result.get("x2")).toBe(0); // 2 - 5 = 0 in N_0
+        expect(result.get("x2")).toBe(0);
     });
 
-    test("should handle nested loops (multiplication)", () => {
+    test("nested loops (multiplication)", () => {
         const code = `
             x0 := 3;
             x1 := 4;
@@ -54,8 +52,7 @@ describe("LOOP Interpreter", () => {
         expect(result.get("x2")).toBe(12);
     });
 
-    test("loop count should be determined before execution", () => {
-        // Changing x0 inside the loop should NOT affect iteration count
+    test("loop count captured before execution", () => {
         const code = `
             x0 := 5;
             x1 := 0;
@@ -69,19 +66,120 @@ describe("LOOP Interpreter", () => {
         const interpreter = new LoopInterpreter();
         const result = interpreter.evaluate(parser.parse());
         
-        expect(result.get("x1")).toBe(5); // Should still run 5 times
-        expect(result.get("x0")).toBe(0); // x0 is indeed 0 at the end
+        expect(result.get("x1")).toBe(5);
+        expect(result.get("x0")).toBe(0);
     });
 
-    test("should handle zero iterations correctly", () => {
-        // 2DO
+    test("zero iterations", () => {
+        const code = `
+            x0 := 0;
+            x1 := 10;
+            LOOP x0 DO
+                x1 := x1 + 1;
+            END
+        `;
+        const lexer = new Lexer(code);
+        const parser = new LoopParser(lexer.tokenize());
+        const interpreter = new LoopInterpreter();
+        const result = interpreter.evaluate(parser.parse());
+        
+        expect(result.get("x1")).toBe(10);
     });
 
-    test("should correctly handle multiple sequential loops", () => {
-        // 2DO
+    test("sequential loops", () => {
+        const code = `
+            x0 := 3;
+            x1 := 0;
+            LOOP x0 DO
+                x1 := x1 + 1;
+            END
+            x2 := 2;
+            LOOP x2 DO
+                x1 := x1 + 1;
+            END
+        `;
+        const lexer = new Lexer(code);
+        const parser = new LoopParser(lexer.tokenize());
+        const interpreter = new LoopInterpreter();
+        const result = interpreter.evaluate(parser.parse());
+        
+        expect(result.get("x1")).toBe(5);
     });
 
-    test("should handle addition with variables", () => {
-        // 2DO
+    test("addition", () => {
+        const code = `
+            x0 := 5;
+            x1 := 3;
+            x2 := x0 + x1;
+        `;
+        const lexer = new Lexer(code);
+        const parser = new LoopParser(lexer.tokenize());
+        const interpreter = new LoopInterpreter();
+        const result = interpreter.evaluate(parser.parse());
+        
+        expect(result.get("x2")).toBe(8);
+    });
+});
+
+describe("LOOP with initial variables", () => {
+    test("initial vars override program assignments", () => {
+        const code = `
+            x0 := 3;
+            x1 := 4;
+            x2 := 0;
+            LOOP x0 DO
+                LOOP x1 DO
+                    x2 := x2 + 1;
+                END
+            END
+        `;
+        const lexer = new Lexer(code);
+        const parser = new LoopParser(lexer.tokenize());
+        const interpreter = new LoopInterpreter();
+        
+        const initialVars = new Map([["x0", 5], ["x1", 6]]);
+        const result = interpreter.evaluate(parser.parse(), { initialVariables: initialVars });
+        
+        expect(result.get("x0")).toBe(5);
+        expect(result.get("x1")).toBe(6);
+        expect(result.get("x2")).toBe(30);
+    });
+
+    test("initial vars work with subsequent modifications", () => {
+        const code = `
+            x0 := 10;
+            x1 := 0;
+            LOOP x0 DO
+                x1 := x1 + 1;
+                x0 := x0 - 1;
+            END
+        `;
+        const lexer = new Lexer(code);
+        const parser = new LoopParser(lexer.tokenize());
+        const interpreter = new LoopInterpreter();
+        
+        const initialVars = new Map([["x0", 3]]);
+        const result = interpreter.evaluate(parser.parse(), { initialVariables: initialVars });
+        
+        expect(result.get("x1")).toBe(3);
+        expect(result.get("x0")).toBe(0);
+    });
+
+    test("partial initial vars", () => {
+        const code = `
+            x0 := 2;
+            x1 := 3;
+            x2 := x0 + x1;
+        `;
+        const lexer = new Lexer(code);
+        const parser = new LoopParser(lexer.tokenize());
+        const interpreter = new LoopInterpreter();
+        
+        const initialVars = new Map([["x0", 10]]);
+        const result = interpreter.evaluate(parser.parse(), { initialVariables: initialVars });
+        
+        expect(result.get("x0")).toBe(10);
+        expect(result.get("x1")).toBe(3);
+        expect(result.get("x2")).toBe(13);
     });
 });

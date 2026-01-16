@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "description": "Interpreters and translators of GOTO, LOOP and WHILE programs for FSK students",
   "main": "index.js",
+  "bin": {
+    "lang": "./dist/cli.js"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc && node dist/index.js",
-    "test": "jest",
-    "cli": "ts-node src/cli.ts"
+    "test": "jest"
   },
   "repository": {
     "type": "git",

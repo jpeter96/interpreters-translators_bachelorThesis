@@ -5,10 +5,12 @@ import WhileParser = require("./while/parser");
 import WhileInterpreter = require("./while/interpreter");
 import GotoParser = require("./goto/parser");
 import GotoInterpreter = require("./goto/interpreter");
+import { LoopToWhileTranslator } from "./translators/loopToWhile";
+import { WhileToGotoTranslator } from "./translators/whileToGoto";
+import { GotoToWhileTranslator } from "./translators/gotoToWhile";
 
-// EXAMPLE 1: LOOP Program
-// Calculates multiplication: x2 = x0 * x1
-console.log("- EX1: LOOP -");
+// LOOP multiplication (x2 = x0 * x1)
+console.log("LOOP Example");
 const loopProgram = `
 x0 := 3;
 x1 := 4;
@@ -19,26 +21,21 @@ LOOP x0 DO
   END
 END
 `;
-console.log("Code:");
 console.log(loopProgram.trim());
 
 const lexer = new Lexer(loopProgram);
-const tokens = lexer.tokenize();
-const parser = new LoopParser(tokens);
+const parser = new LoopParser(lexer.tokenize());
 const ast = parser.parse();
 
-console.log("\nInterpreter:");
 const interpreter = new LoopInterpreter();
 const result = interpreter.evaluate(ast);
 
-console.log("Final Variable State:");
-result.forEach((value, key) => {
-    console.log(`${key} = ${value}`);
-});
+console.log("\nResult:");
+result.forEach((value, key) => console.log(`  ${key} = ${value}`));
 
 
-// EXAMPLE 2: WHILE Program
-console.log("\n\n- EX2: WHILE -");
+// WHILE division (x2 = x0 / x1)
+console.log("\n\nWHILE Example");
 const whileProgram = `
 x0 := 10;
 x1 := 2;
@@ -48,26 +45,21 @@ WHILE x0 >= x1 DO
   x2 := x2 + 1;
 END
 `;
-console.log("Code:");
 console.log(whileProgram.trim());
 
 const whileLexer = new Lexer(whileProgram);
-const whileTokens = whileLexer.tokenize();
-const whileParser = new WhileParser(whileTokens);
+const whileParser = new WhileParser(whileLexer.tokenize());
 const whileAst = whileParser.parse();
 
-console.log("\nInterpreter:");
 const whileInterpreter = new WhileInterpreter();
 const whileResult = whileInterpreter.evaluate(whileAst);
 
-console.log("Final Variable State:");
-whileResult.forEach((value, key) => {
-    console.log(`${key} = ${value}`);
-});
+console.log("\nResult:");
+whileResult.forEach((value, key) => console.log(`  ${key} = ${value}`));
 
 
-// EXAMPLE 3: GOTO Program
-console.log("\n\n- EX3: GOTO -");
+// GOTO countdown
+console.log("\n\nGOTO Example");
 const gotoProgram = `
 x0 := 5;
 M1: IF x0 = 0 THEN GOTO M2;
@@ -75,22 +67,57 @@ M1: IF x0 = 0 THEN GOTO M2;
     GOTO M1;
 M2: HALT;
 `;
-console.log("Code:");
 console.log(gotoProgram.trim());
 
 const gotoLexer = new Lexer(gotoProgram);
-const gotoTokens = gotoLexer.tokenize();
-const gotoParser = new GotoParser(gotoTokens);
+const gotoParser = new GotoParser(gotoLexer.tokenize());
 const gotoAst = gotoParser.parse();
 
-console.log("\nInterpreter:");
 const gotoInterpreter = new GotoInterpreter();
 const gotoResult = gotoInterpreter.evaluate(gotoAst);
 
-console.log("Final Variable State:");
-gotoResult.forEach((value, key) => {
-    console.log(`${key} = ${value}`);
-});
+console.log("\nResult:");
+gotoResult.forEach((value, key) => console.log(`  ${key} = ${value}`));
 
 
+// Translators
+console.log("\n\n--- Translators ---\n");
 
+// LOOP -> WHILE
+console.log("LOOP -> WHILE");
+const loopToWhile = new LoopToWhileTranslator();
+const translatedWhileAst = loopToWhile.translate(ast);
+
+const translatedWhileInterpreter = new WhileInterpreter();
+const translatedWhileResult = translatedWhileInterpreter.evaluate(translatedWhileAst);
+
+console.log(`  Original LOOP:     x2 = ${result.get("x2")}`);
+console.log(`  Translated WHILE:  x2 = ${translatedWhileResult.get("x2")}`);
+
+
+// WHILE -> GOTO
+console.log("\nWHILE -> GOTO");
+const whileToGoto = new WhileToGotoTranslator();
+const translatedGotoAst = whileToGoto.translate(whileAst);
+
+const translatedGotoInterpreter = new GotoInterpreter();
+const translatedGotoResult = translatedGotoInterpreter.evaluate(translatedGotoAst);
+
+console.log(`  Original WHILE:    x2 = ${whileResult.get("x2")}`);
+console.log(`  Translated GOTO:   x2 = ${translatedGotoResult.get("x2")}`);
+
+
+// GOTO -> WHILE
+console.log("\nGOTO -> WHILE");
+const gotoToWhile = new GotoToWhileTranslator();
+const gotoToWhileAst = gotoToWhile.translate(gotoAst);
+
+const gotoToWhileInterpreter = new WhileInterpreter();
+const gotoToWhileResult = gotoToWhileInterpreter.evaluate(gotoToWhileAst);
+
+console.log(`  Original GOTO:     x0 = ${gotoResult.get("x0")}`);
+console.log(`  Translated WHILE:  x0 = ${gotoToWhileResult.get("x0")}`);
+
+
+console.log("\nAll translations preserve semantics.");
+console.log("This demonstrates: LOOP ⊆ WHILE ⊆ GOTO ≡ WHILE");

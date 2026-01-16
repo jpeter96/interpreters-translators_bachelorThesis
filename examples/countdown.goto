@@ -1,0 +1,5 @@
+x0 := 5;
+M1: IF x0 = 0 THEN GOTO M2;
+    x0 := x0 - 1;
+    GOTO M1;
+M2: HALT;

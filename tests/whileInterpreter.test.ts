@@ -1,9 +1,9 @@
-import WhileInterpreter = require("../src/while/interpreter");
-import WhileParser = require("../src/while/parser");
-import Lexer = require("../src/lexer");
+import WhileInterpreter from "../src/while/interpreter";
+import WhileParser from "../src/while/parser";
+import Lexer from "../src/lexer";
 
 describe("WHILE Interpreter", () => {
-    test("should execute a simple WHILE program", () => {
+    test("simple while loop", () => {
         const code = `
             x0 := 5;
             x1 := 0;
@@ -13,16 +13,14 @@ describe("WHILE Interpreter", () => {
             END
         `;
         const lexer = new Lexer(code);
-        const tokens = lexer.tokenize();
-        const parser = new WhileParser(tokens);
-        const ast = parser.parse();
+        const parser = new WhileParser(lexer.tokenize());
         const interpreter = new WhileInterpreter();
-        const result = interpreter.evaluate(ast);
+        const result = interpreter.evaluate(parser.parse());
         
         expect(result.get("x1")).toBe(5);
     });
 
-    test("should handle IF-THEN-ELSE correctly", () => {
+    test("IF-THEN-ELSE", () => {
         const code = `
             x0 := 1;
             x1 := 0;
@@ -44,11 +42,11 @@ describe("WHILE Interpreter", () => {
         const interpreter = new WhileInterpreter();
         const result = interpreter.evaluate(parser.parse());
         
-        expect(result.get("x1")).toBe(1); // True branch
-        expect(result.get("x2")).toBe(2); // False branch
+        expect(result.get("x1")).toBe(1);
+        expect(result.get("x2")).toBe(2);
     });
 
-    test("should not execute loop body if condition is initially false", () => {
+    test("condition false initially skips loop", () => {
         const code = `
             x0 := 0;
             x1 := 10;
@@ -64,15 +62,145 @@ describe("WHILE Interpreter", () => {
         expect(result.get("x1")).toBe(10);
     });
 
-    test("should handle nested IF statements", () => {
-        // 2DO
+    test("nested IF statements", () => {
+        const code = `
+            x0 := 1;
+            x1 := 1;
+            x2 := 0;
+            IF x0 = 1 THEN
+                IF x1 = 1 THEN
+                    x2 := 1;
+                ELSE
+                    x2 := 2;
+                END
+            ELSE
+                x2 := 3;
+            END
+        `;
+        const lexer = new Lexer(code);
+        const parser = new WhileParser(lexer.tokenize());
+        const interpreter = new WhileInterpreter();
+        const result = interpreter.evaluate(parser.parse());
+        
+        expect(result.get("x2")).toBe(1);
     });
 
-    test("should handle complex comparison operators (<=, >=)", () => {
-        // 2DO
+    test("comparison operators (<=, >=)", () => {
+        const code = `
+            x0 := 5;
+            x1 := 0;
+            x2 := 0;
+            IF x0 >= 5 THEN
+                x1 := 1;
+            END
+            IF x0 <= 4 THEN
+                x2 := 1;
+            END
+        `;
+        const lexer = new Lexer(code);
+        const parser = new WhileParser(lexer.tokenize());
+        const interpreter = new WhileInterpreter();
+        const result = interpreter.evaluate(parser.parse());
+        
+        expect(result.get("x1")).toBe(1);
+        expect(result.get("x2")).toBe(0);
     });
 
-    test("should detect infinite loops (safety mechanism)", () => {
-        // 2DO
+    test("infinite loop detection", () => {
+        const code = `
+            x0 := 1;
+            WHILE x0 != 0 DO
+                x0 := 1;
+            END
+        `;
+        const lexer = new Lexer(code);
+        const parser = new WhileParser(lexer.tokenize());
+        const interpreter = new WhileInterpreter();
+        
+        expect(() => {
+            interpreter.evaluate(parser.parse());
+        }).toThrow("Infinite loop detected");
+    });
+
+    test("integer division", () => {
+        const code = `
+            x0 := 10;
+            x1 := 3;
+            x2 := 0;
+            WHILE x0 >= x1 DO
+                x0 := x0 - x1;
+                x2 := x2 + 1;
+            END
+        `;
+        const lexer = new Lexer(code);
+        const parser = new WhileParser(lexer.tokenize());
+        const interpreter = new WhileInterpreter();
+        const result = interpreter.evaluate(parser.parse());
+        
+        expect(result.get("x2")).toBe(3);
+        expect(result.get("x0")).toBe(1);
+    });
+});
+
+describe("WHILE with initial variables", () => {
+    test("initial vars override program assignments", () => {
+        const code = `
+            x0 := 10;
+            x1 := 3;
+            x2 := 0;
+            WHILE x0 >= x1 DO
+                x0 := x0 - x1;
+                x2 := x2 + 1;
+            END
+        `;
+        const lexer = new Lexer(code);
+        const parser = new WhileParser(lexer.tokenize());
+        const interpreter = new WhileInterpreter();
+        
+        const initialVars = new Map([["x0", 15], ["x1", 5]]);
+        const result = interpreter.evaluate(parser.parse(), { initialVariables: initialVars });
+        
+        expect(result.get("x2")).toBe(3);
+        expect(result.get("x0")).toBe(0);
+    });
+
+    test("countdown with initial var", () => {
+        const code = `
+            x0 := 10;
+            x1 := 0;
+            WHILE x0 != 0 DO
+                x1 := x1 + 1;
+                x0 := x0 - 1;
+            END
+        `;
+        const lexer = new Lexer(code);
+        const parser = new WhileParser(lexer.tokenize());
+        const interpreter = new WhileInterpreter();
+        
+        const initialVars = new Map([["x0", 3]]);
+        const result = interpreter.evaluate(parser.parse(), { initialVariables: initialVars });
+        
+        expect(result.get("x1")).toBe(3);
+        expect(result.get("x0")).toBe(0);
+    });
+
+    test("IF with initial var", () => {
+        const code = `
+            x0 := 0;
+            x1 := 0;
+            IF x0 = 5 THEN
+                x1 := 1;
+            ELSE
+                x1 := 2;
+            END
+        `;
+        const lexer = new Lexer(code);
+        const parser = new WhileParser(lexer.tokenize());
+        const interpreter = new WhileInterpreter();
+        
+        const initialVars = new Map([["x0", 5]]);
+        const result = interpreter.evaluate(parser.parse(), { initialVariables: initialVars });
+        
+        expect(result.get("x1")).toBe(1);
     });
 });
